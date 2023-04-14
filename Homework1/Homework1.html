@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<canvas id="gl-canvas" width="512" height="512"></canvas>
+<br>
+Buttons to manage the rotations: 
+<button id = "Start">Start</button>
+<button id = "Stop">Stop</button>
+<button id = "Invert">Invert Rotation</button>
+<button id = "ButtonX">Rotate X</button>
+<button id = "ButtonY">Rotate Y</button>
+<button id = "ButtonZ">Rotate Z</button>
+
+<br>
+<p></p>
+Buttons to manage the lights:
+<button id = "LightOnNeon">Neon On</button>
+<button id = "LightOffNeon">Neon Off</button>
+<button id = "LightOn">Lights On</button>
+<button id = "LightOff">Lights Off</button>
+
+<br>
+<p></p>
+Change Eye parameters:
+<button id = "FarZ">Go Farther (z)</button>
+<button id = "NearZ">Get Nearer (z)</button>
+<button id = "LeftEye">Move Left tetha</button>
+<button id = "RightEye">Move Right tetha</button>
+<button id = "UpEye">Go Up Eye</button>
+<button id = "DownEye">Go Down Eye</button>
+<br>
+<p></p>
+Manage the field of view and viewing volume:
+<button id = "FOVup">Increment FOV</button>
+<button id = "FOVdown">Decrease FOV</button>
+<button id = "NearPull">Pull near towards the eye</button>  <!-- aumenta la visuale -->
+<button id = "NearPush">Push near away from eye</button> <!-- diminuisce la visuale -->
+<button id = "FarPull">Pull far towards the eye</button> <!-- diminuisce la visuale -->
+<button id = "FarPush">Push far away from eye</button> <!-- aumenta la visuale -->
+
+<br>
+<p></p>
+Choose a shading technique:
+<button id = "Vertex">Per Vertex Shading</button>
+<button id = "Fragment">Per Fragment Shading</button>
+
+<br>
+<p></p>
+Show and hide the texture:
+<button id = "TexOn">Activate Texture</button>
+<button id = "TexOff">Deactivate Texture</button>
+
+<br>
+<p></p>
+Alter the ratio of the polygon:
+<button id = "AspectLow">Decrement Aspect Ratio</button>
+<button id = "AspectUp">Increment Aspect Ratio</button>
+
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+#version 300 es
+precision mediump float;
+
+in vec2 aTexCoord;
+in  vec4 aPosition;
+in  vec3 aNormal;
+out vec4 vColor;
+out vec3 N, L, E;
+out vec3 L2, L3, L4;
+out vec2 vTexCoord; //texture coordinate from rasterizer
+uniform sampler2D aTexture; //texture object from application
+
+uniform vec4 uNormal;
+uniform vec4 uAmbientProduct, uDiffuseProduct, uSpecularProduct;
+uniform vec4 uAmbientProduct0, uDiffuseProduct0, uSpecularProduct0;
+uniform mat4 uModelViewMatrix;
+uniform mat4 uProjectionMatrix;
+uniform vec4 uLightPosition;
+
+uniform vec4 uLightPosition2;
+uniform vec4 uLightPosition3;
+uniform vec4 uLightPosition4;
+
+uniform float uShininess;
+uniform mat3 uNormalMatrix;
+uniform vec3 uObjTangent;
+uniform bool invert;
+uniform bool texture_flag;
+
+void main()
+{
+vec4 NN = vec4(aNormal,0);
+
+    if(!invert){ //vertex 
+        vec3 pos = (uModelViewMatrix * aPosition).xyz;
+    //luce 1---------------------------------------------
+        vec3 light = (uLightPosition).xyz;
+         L = normalize(light - pos);
+    
+        vec3 E = normalize(-pos);
+        vec3 H = normalize(L + E);
+    
+        // Transform vertex normal into eye coordinates
+    
+        vec3 N = normalize((uModelViewMatrix*NN).xyz);
+    
+        // Compute terms in the illumination equation
+        vec4 ambient = uAmbientProduct0;
+    
+        float Kd = max(dot(L, N), 0.0);
+        vec4  diffuse = Kd*uDiffuseProduct0;
+    
+        float Ks = pow( max(dot(N, H), 0.0), uShininess );
+        vec4  specular = Ks * uSpecularProduct0;
+
+        if( dot(L, N) < 0.0 ) {
+            specular = vec4(0.0, 0.0, 0.0, 1);
+          }
+    //----------------------------------------------
+    // luce2
+        vec3 light2 = uLightPosition2.xyz;
+         L2 = normalize(light2 - pos);
+
+        vec3 H2 = normalize(L2 + E);
+
+    // Compute terms in the illumination equation
+        vec4 ambient2 = uAmbientProduct;
+
+        float Kd2 = max(dot(L2, N), 0.0);
+        vec4  diffuse2 = Kd2*uDiffuseProduct;
+
+        float Ks2 = pow( max(dot(N, H2), 0.0), uShininess );
+        vec4  specular2 = Ks2 * uSpecularProduct;
+
+    if( dot(L2, N) < 0.0 ) {
+        specular2 = vec4(0.0, 0.0, 0.0, 1);
+      }
+
+    //luce 3-------------------------------------------
+        vec3 light3 = uLightPosition3.xyz;
+         L3 = normalize(light3 - pos);
+    
+        vec3 H3 = normalize(L3 + E);
+    
+        // Compute terms in the illumination equation
+        vec4 ambient3 = uAmbientProduct;
+    
+        float Kd3 = max(dot(L3, N), 0.0);
+        vec4  diffuse3 = Kd3*uDiffuseProduct;
+    
+        float Ks3 = pow( max(dot(N, H3), 0.0), uShininess );
+        vec4  specular3 = Ks3 * uSpecularProduct;
+
+        if( dot(L3, N) < 0.0 ) {
+            specular3 = vec4(0.0, 0.0, 0.0, 1);
+          }
+
+    //luce 4---------------------------------------------
+        vec3 light4 = uLightPosition4.xyz;
+         L4 = normalize(light4 - pos);
+    
+        vec3 H4 = normalize(L4 + E);
+    
+        // Compute terms in the illumination equation
+        vec4 ambient4 = uAmbientProduct;
+    
+        float Kd4 = max(dot(L4, N), 0.0);
+        vec4  diffuse4 = Kd4*uDiffuseProduct;
+    
+        float Ks4 = pow( max(dot(N, H4), 0.0), uShininess );
+        vec4  specular4 = Ks4 * uSpecularProduct;
+
+        if( dot(L4, N) < 0.0 ) {
+            specular4 = vec4(0.0, 0.0, 0.0, 1);
+          }
+    //----------------------------------------------
+        
+        gl_Position = uProjectionMatrix * uModelViewMatrix * aPosition;
+
+
+        vColor = ambient + ambient2 + ambient3 + ambient4 + diffuse + diffuse2 + diffuse3 +diffuse4 + specular + specular2 + specular3 + specular4;
+        vColor.a = 1.0;
+    }
+        
+    
+    if(invert){ //fragment 
+
+        vec3 pos = (uModelViewMatrix * aPosition).xyz;
+        if(uLightPosition.z == 0.0) {
+            L = normalize(uLightPosition.xyz);
+            L2 = normalize(uLightPosition2.xyz);
+            L3 = normalize(uLightPosition3.xyz);
+            L4 = normalize(uLightPosition4.xyz);
+        } else {
+            L = normalize(uLightPosition.xyz - pos);
+            L2 = normalize(uLightPosition2.xyz - pos);
+            L3 = normalize(uLightPosition3.xyz - pos);
+            L4 = normalize(uLightPosition4.xyz - pos);
+        }
+
+        E =  normalize(-pos);
+        N = normalize((uModelViewMatrix*NN).xyz);
+        gl_Position = uProjectionMatrix*uModelViewMatrix*aPosition;
+        
+    }
+        
+    if(texture_flag){
+        vTexCoord = aTexCoord;
+
+    vec3 N = normalize(uNormalMatrix*uNormal.xyz);
+    vec3 T  = normalize(uNormalMatrix*uObjTangent);
+    vec3 B = cross(N, T);
+    }
+
+}
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+#version 300 es
+
+precision mediump float;
+
+in vec4 vColor;
+in vec2 vTexCoord; //texture coordinate from rasterizer
+uniform sampler2D uTexMap;
+uniform sampler2D aTexture; //texture object from application
+uniform vec4 uAmbientProduct;
+uniform vec4 uDiffuseProduct;
+uniform vec4 uSpecularProduct;
+
+
+uniform vec4 uAmbientProduct0;
+uniform vec4 uDiffuseProduct0;
+uniform vec4 uSpecularProduct0;
+
+
+uniform float uShininess;
+uniform bool invert;
+uniform bool texture_flag;
+
+vec4 ambient, diffuse, specular;
+vec4 ambient2, diffuse2, specular2;
+vec4 ambient3, diffuse3, specular3;
+vec4 ambient4, diffuse4, specular4;
+
+in vec3 N, L, E;
+in vec3 L2, L3, L4;
+out vec4 fColor;
+
+void
+main()
+{   
+    if(invert){ //fragment shading
+        
+        //luce 1---------------------------------------------
+        vec3 H = normalize( L + E );
+        ambient = uAmbientProduct0;
+
+        float Kd = max( dot(L, N), 0.0 );
+        diffuse = Kd*uDiffuseProduct0;
+
+        float Ks = pow( max(dot(N, H), 0.0), uShininess );
+        specular = Ks * uSpecularProduct0;
+
+        if( dot(L, N) < 0.0 ) specular = vec4(0.0, 0.0, 0.0, 1);
+        //---------------------------------------------------
+
+        //luce2 ----------------------------------------------
+        vec3 H2 = normalize( L2 + E );
+        ambient2 = uAmbientProduct;
+
+        float Kd2 = max( dot(L2, N), 0.0 );
+        diffuse2 = Kd2*uDiffuseProduct;
+
+        float Ks2 = pow( max(dot(N, H2), 0.0), uShininess );
+        specular2 = Ks2 * uSpecularProduct;
+
+        if( dot(L2, N) < 0.0 ) specular2 = vec4(0.0, 0.0, 0.0, 1);
+        //----------------------------------------------
+
+        //luce3----------------------------------------
+        vec3 H3 = normalize( L3 + E );
+        ambient3 = uAmbientProduct;
+
+        float Kd3 = max( dot(L3, N), 0.0 );
+        diffuse3 = Kd3*uDiffuseProduct;
+
+        float Ks3 = pow( max(dot(N, H3), 0.0), uShininess );
+        specular3 = Ks3 * uSpecularProduct;
+
+        if( dot(L3, N) < 0.0 ) specular3 = vec4(0.0, 0.0, 0.0, 1);
+        //----------------------------------------------
+
+        //luce 4---------------------------------------------
+        vec3 H4 = normalize( L4 + E );
+        ambient4 = uAmbientProduct;
+
+        float Kd4 = max( dot(L4, N), 0.0 );
+        diffuse4 = Kd4*uDiffuseProduct;
+
+        float Ks4 = pow( max(dot(N, H4), 0.0), uShininess );
+        specular4 = Ks4 * uSpecularProduct;
+
+        if( dot(L4, N) < 0.0 ) specular4 = vec4(0.0, 0.0, 0.0, 1);
+        //---------------------------------------------------
+
+        if(texture_flag){
+            fColor = (ambient + ambient2 + ambient3 + ambient4 + diffuse + diffuse2 + diffuse3 +diffuse4 + specular + specular2 + specular3 +specular4)*texture(uTexMap, vTexCoord);
+        } else {
+            fColor = (ambient + ambient2 + ambient3 + ambient4 + diffuse + diffuse2 + diffuse3 +diffuse4 + specular + specular2 + specular3 + specular4);
+        }
+        
+        fColor.a = 1.0;
+    }
+        
+    if(!invert){ //vertex shading
+        if(texture_flag){
+            fColor = vColor*texture(uTexMap, vTexCoord);
+        } else {
+            fColor = vColor;
+        }
+        
+        
+    }
+
+
+}
+</script>
+
+<script src="../Common/initShaders.js"></script>
+<script src="../Common/MVnew.js"></script>
+<script src="Homework1.js"></script>
+
+
+</body>
+</html>
